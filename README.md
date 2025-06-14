@@ -1,1 +1,1 @@
-# ep-public
+# enterprise platform - public repository
