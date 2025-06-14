@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BPM Architecture - Interactive Report</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* Material Design 3 Inspired Styles */
+        :root {
+            --primary-color: #1976d2;
+            --primary-dark: #004ba0;
+            --primary-light: #63a4ff;
+            --secondary-color: #424242;
+            --accent-color: #00bcd4;
+            --background-color: #fafafa;
+            --surface-color: #ffffff;
+            --error-color: #d32f2f;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border-radius: 12px;
+            --shadow-1: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-2: 0 4px 8px rgba(0,0,0,0.15);
+            --shadow-3: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .nav-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: var(--shadow-2);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-item {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 64px;
+            bottom: 0;
+            width: 280px;
+            background-color: var(--surface-color);
+            box-shadow: var(--shadow-1);
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 999;
+        }
+
+        .sidebar-content {
+            padding: 2rem 1rem;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            padding: 0 1rem;
+        }
+
+        .sidebar-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-link:hover {
+            background-color: rgba(25, 118, 210, 0.08);
+            color: var(--primary-color);
+        }
+
+        .sidebar-link.active {
+            background-color: rgba(25, 118, 210, 0.12);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        .main-container {
+            margin-left: 280px;
+            margin-top: 64px;
+            min-height: calc(100vh - 64px);
+            background-color: var(--background-color);
+        }
+
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--surface-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-2);
+        }
+
+        .card-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+            background-color: rgba(25, 118, 210, 0.04);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-content {
+            padding: 2rem;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 3rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1, h2, h3, h4 {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-top: 2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin-top: 1.5rem;
+            color: var(--primary-dark);
+        }
+
+        h4 {
+            font-size: 1.25rem;
+            margin-top: 1rem;
+            color: var(--text-secondary);
+        }
+
+        p {
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        /* Lists */
+        ul, ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Code Blocks */
+        pre {
+            background-color: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+        }
+
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            background-color: #f5f5f5;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+            background-color: var(--surface-color);
+            box-shadow: var(--shadow-1);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            text-align: left;
+            padding: 1rem;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+
+        tr:hover {
+            background-color: rgba(25, 118, 210, 0.04);
+        }
+
+        /* Diagrams */
+        .diagram-container {
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin: 2rem 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+        }
+
+        .mermaid {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        /* Interactive Elements */
+        .tab-container {
+            margin: 2rem 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 1rem;
+        }
+
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            color: var(--primary-color);
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 56px;
+            height: 56px;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+
+        /* Progress Indicator */
+        .progress-container {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background-color: rgba(25, 118, 210, 0.1);
+            z-index: 1001;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-container {
+                margin-left: 0;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 1rem;
+            }
+
+            .card-content {
+                padding: 1rem;
+            }
+
+            table {
+                font-size: 0.875rem;
+            }
+
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            .nav-header, .sidebar, .fab, .progress-container {
+                display: none;
+            }
+
+            .main-container {
+                margin: 0;
+            }
+
+            .card {
+                box-shadow: none;
+                border: 1px solid #e0e0e0;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="nav-header">
+        <div class="nav-content">
+            <div class="nav-title">
+                <i class="fas fa-sitemap"></i> BPM Architecture Report
+            </div>
+            <nav class="nav-menu">
+                <a href="#overview" class="nav-item">Overview</a>
+                <a href="#architecture" class="nav-item">Architecture</a>
+                <a href="#data" class="nav-item">Data</a>
+                <a href="#security" class="nav-item">Security</a>
+                <a href="#deployment" class="nav-item">Deployment</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-content">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Architecture</div>
+                <a href="#architecture-overview" class="sidebar-link">Architecture Overview</a>
+                <a href="#system-context" class="sidebar-link">System Context</a>
+                <a href="#application-architecture" class="sidebar-link">Application Architecture</a>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Data</div>
+                <a href="#data-architecture" class="sidebar-link">Data Architecture</a>
+                <a href="#data-model" class="sidebar-link">Data Model</a>
+                <a href="#data-flow" class="sidebar-link">Data Flow</a>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Integration</div>
+                <a href="#integration-architecture" class="sidebar-link">Integration Architecture</a>
+                <a href="#integration-patterns" class="sidebar-link">Integration Patterns</a>
+                <a href="#api-specs" class="sidebar-link">API Specifications</a>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Security</div>
+                <a href="#security-architecture" class="sidebar-link">Security Architecture</a>
+                <a href="#security-controls" class="sidebar-link">Security Controls</a>
+                <a href="#data-protection" class="sidebar-link">Data Protection</a>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Deployment</div>
+                <a href="#deployment-architecture" class="sidebar-link">Deployment Architecture</a>
+                <a href="#environments" class="sidebar-link">Environments</a>
+                <a href="#scalability" class="sidebar-link">Scalability</a>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Performance</div>
+                <a href="#performance-architecture" class="sidebar-link">Performance Architecture</a>
+                <a href="#monitoring" class="sidebar-link">Monitoring</a>
+                <a href="#disaster-recovery" class="sidebar-link">Disaster Recovery</a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <div class="content">
+            <!-- Title Section -->
+            <section class="section" id="overview">
+                <div class="card">
+                    <div class="card-content">
+                        <h1 style="color: var(--primary-color); font-size: 3rem; margin-bottom: 1rem;">
+                            <i class="fas fa-project-diagram"></i> Business Process Management (BPM) Architecture
+                        </h1>
+                        <p style="font-size: 1.25rem; color: var(--text-secondary);">
+                            Technical Architecture Documentation - Version 1.0
+                        </p>
+                        <div style="margin-top: 2rem; display: flex; gap: 2rem; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <h4><i class="fas fa-book"></i> Document Type</h4>
+                                <p>Technical Architecture</p>
+                            </div>
+                            <div style="flex: 1; min-width: 200px;">
+                                <h4><i class="fas fa-cube"></i> Module</h4>
+                                <p>Business Process Management (BPM)</p>
+                            </div>
+                            <div style="flex: 1; min-width: 200px;">
+                                <h4><i class="fas fa-calendar"></i> Last Updated</h4>
+                                <p>Current Date</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Architecture Overview -->
+            <section class="section" id="architecture-overview">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-layer-group"></i> Architecture Overview
+                        </h2>
+                    </div>
+                    <div class="card-content">
+                        <h3>Architectural Principles</h3>
+                        <p>The Business Process Management (BPM) module follows enterprise architectural principles designed for scalability, flexibility, and performance:</p>
+                        
+                        <ul>
+                            <li><strong>Event-Driven Architecture</strong>: Real-time workflow orchestration and execution</li>
+                            <li><strong>Microservices Design</strong>: Loosely coupled, independently deployable components</li>
+                            <li><strong>API-First Approach</strong>: RESTful and GraphQL endpoints for all functionality</li>
+                            <li><strong>BPMN 2.0 Compliance</strong>: Standard business process modeling notation</li>
+                            <li><strong>Multi-Tenant Support</strong>: Enterprise-wide deployment with isolation</li>
+                            <li><strong>Workflow Engine Abstraction</strong>: Pluggable workflow execution engines</li>
+                        </ul>
+
+                        <h3>Core Architectural Patterns</h3>
+                        <div class="diagram-container">
+                            <div class="mermaid">
+                                graph TB
+                                    A[Presentation Layer] --> B[Application Layer]
+                                    B --> C[Domain Layer]
+                                    C --> D[Infrastructure Layer]
+
+                                    subgraph "Presentation Layer"
+                                        A1[Process Designer Apps]
+                                        A2[Task Management Apps]
+                                        A3[Mobile Approval Apps]
+                                        A4[Process Dashboards]
+                                    end
+
+                                    subgraph "Application Layer"
+                                        B1[Workflow Engine]
+                                        B2[Task Orchestrator]
+                                        B3[Approval Router]
+                                        B4[Event Processor]
+                                    end
+
+                                    subgraph "Domain Layer"
+                                        C1[Process Models]
+                                        C2[Workflow Instances]
+                                        C3[Task Management]
+                                        C4[Approval Logic]
+                                    end
+
+                                    subgraph "Infrastructure Layer"
+                                        D1[Data Storage]
+                                        D2[Message Queue]
+                                        D3[External APIs]
+                                        D4[Monitoring]
+                                    end
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- System Context -->
+            <section class="section" id="system-context">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-network-wired"></i> System Context
+                        </h2>
+                    </div>
+                    <div class="card-content">
+                        <h3>System Context Diagram</h3>
+                        <div class="diagram-container">
+                            <div class="mermaid">
+                                graph TB
+                                    subgraph "External Users"
+                                        U1[Business Users]
+                                        U2[Managers/Approvers]
+                                        U3[Process Analysts]
+                                    end
+
+                                    subgraph "BPM System"
+                                        BPM[Business Process Management]
+                                    end
+
+                                    subgraph "External Systems"
+                                        E1[DMS System]
+                                        E2[HRM System]
+                                        E3[Email System]
+                                        E4[Document Management]
+                                        E5[ERP System]
+                                    end
+
+                                    U1 -->|Execute workflows| BPM
+                                    U2 -->|Process approvals| BPM
+                                    U3 -->|Design processes| BPM
+
+                                    BPM -->|Process definitions| E1
+                                    BPM -->|User data| E2
+                                    BPM -->|Send notifications| E3
+                                    BPM -->|Store documents| E4
+                                    BPM -->|Business data| E5
+                            </div>
+                        </div>
+
+                        <h3>External Dependencies</h3>
+                        <ul>
+                            <li><strong>DMS (Domain Management System)</strong>: Process templates and organizational structure</li>
+                            <li><strong>HRM (Human Resource Management)</strong>: User profiles and organizational hierarchy</li>
+                            <li><strong>Document Management</strong>: Document storage, versioning, and retrieval</li>
+                            <li><strong>Email/Notification Services</strong>: Multi-channel communication delivery</li>
+                            <li><strong>ERP Systems</strong>: Business data and transaction processing</li>
+                            <li><strong>Authentication Services</strong>: Single sign-on and user authentication</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Application Architecture -->
+            <section class="section" id="application-architecture">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-server"></i> Application Architecture
+                        </h2>
+                    </div>
+                    <div class="card-content">
+                        <h3>Container Diagram</h3>
+                        <div class="diagram-container">
+                            <div class="mermaid">
+                                graph TB
+                                    subgraph "Frontend"
+                                        F1[Web Application<br/>React/TypeScript]
+                                        F2[Mobile App<br/>Power Apps]
+                                    end
+
+                                    subgraph "API Layer"
+                                        A1[API Gateway<br/>Azure API Management]
+                                    end
+
+                                    subgraph "Services"
+                                        S1[Workflow Engine<br/>.NET Core]
+                                        S2[Task Service<br/>.NET Core]
+                                        S3[Approval Service<br/>.NET Core]
+                                        S4[Notification Service<br/>.NET Core]
+                                    end
+
+                                    subgraph "Data Layer"
+                                        D1[Database<br/>SQL Server]
+                                        D2[Cache<br/>Redis]
+                                        D3[Message Queue<br/>Service Bus]
+                                        D4[File Storage<br/>Azure Blob]
+                                    end
+
+                                    F1 -->|HTTPS| A1
+                                    F2 -->|HTTPS| A1
+                                    A1 -->|gRPC| S1
+                                    A1 -->|gRPC| S2
+                                    A1 -->|gRPC| S3
+
+                                    S1 --> D1
+                                    S2 --> D1
+                                    S3 --> D1
+                                    S4 --> D3
+
+                                    S1 --> D2
+                                    S2 --> D2
+                                    S3 --> D4
+                            </div>
+                        </div>
+
+                        <h3>Component Architecture</h3>
+                        
+                        <div class="tab-container">
+                            <div class="tab-buttons">
+                                <button class="tab-button active" onclick="showTab('workflow-engine-tab')">Workflow Engine</button>
+                                <button class="tab-button" onclick="showTab('task-management-tab')">Task Management</button>
+                            </div>
+                            
+                            <div id="workflow-engine-tab" class="tab-content active">
+                                <h4>Workflow Engine Component</h4>
+                                <div class="diagram-container">
+                                    <div class="mermaid">
+                                        graph TB
+                                            subgraph "Workflow Engine"
+                                                WE1[Process Definition Parser]
+                                                WE2[Execution Engine]
+                                                WE3[State Machine]
+                                                WE4[Event Handler]
+                                                WE5[Variable Manager]
+                                                WE6[Timer Service]
+                                            end
+
+                                            subgraph "External Services"
+                                                ES1[Task Service]
+                                                ES2[Approval Service]
+                                                ES3[Notification Service]
+                                                ES4[Data Services]
+                                            end
+
+                                            WE1 --> WE2
+                                            WE2 --> WE3
+                                            WE3 --> WE4
+                                            WE4 --> WE5
+                                            WE5 --> WE6
+
+                                            WE2 --> ES1
+                                            WE2 --> ES2
+                                            WE4 --> ES3
+                                            WE5 --> ES4
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="task-management-tab" class="tab-content">
+                                <h4>Task Management Component</h4>
+                                <div class="diagram-container">
+                                    <div class="mermaid">
+                                        graph TB
+                                            subgraph "Task Management"
+                                                TM1[Task Router]
+                                                TM2[Assignment Engine]
+                                                TM3[Workload Balancer]
+                                                TM4[SLA Monitor]
+                                                TM5[Escalation Manager]
+                                                TM6[Performance Tracker]
+                                            end
+
+                                            subgraph "Data Layer"
+                                                DL1[Task Repository]
+                                                DL2[User Repository]
+                                                DL3[Performance Analytics]
+                                            end
+
+                                            TM1 --> TM2
+                                            TM2 --> TM3
+                                            TM3 --> TM4
+                                            TM4 --> TM5
+                                            TM5 --> TM6
+
+                                            TM2 --> DL1
+                                            TM3 --> DL2
+                                            TM6 --> DL3
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Data Architecture -->
+            <section class="section" id="data-architecture">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-database"></i> Data Architecture
+                        </h2>
+                    </div>
+                    <div class="card-content">
+                        <h3>Conceptual Data Model</h3>
+                        <div class="diagram-container">
+                            <div class="mermaid">
+                                erDiagram
+                                    WORKFLOW ||--o{ WORKFLOW_INSTANCE : contains
+                                    WORKFLOW ||--o{ WORKFLOW_STEP : defines
+                                    WORKFLOW_INSTANCE ||--o{ TASK : generates
+                                    WORKFLOW_STEP ||--o{ TASK : creates
+                                    TASK ||--o{ APPROVAL : requires
+                                    TASK }o--|| USER : assigned_to
+                                    APPROVAL }o--|| USER : approver
+
+                                    WORKFLOW {
+                                        uuid workflow_id PK
+                                        string name
+                                        string description
+                                        string domain_id FK
+                                        string process_id FK
+                                        enum workflow_type
+                                        enum status
+                                        string version
+                                        uuid owner_id FK
+                                        datetime approval_date
+                                        json trigger_conditions
+                                        json workflow_definition
+                                    }
+
+                                    WORKFLOW_STEP {
+                                        uuid step_id PK
+                                        uuid workflow_id FK
+                                        string name
+                                        int step_number
+                                        enum step_type
+                                        string assigned_role
+                                        decimal duration_hours
+                                        json conditions
+                                        text instructions
+                                        json required_fields
+                                    }
+
+                                    WORKFLOW_INSTANCE {
+                                        uuid instance_id PK
+                                        uuid workflow_id FK
+                                        string instance_name
+                                        uuid initiated_by FK
+                                        datetime initiated_date
+                                        uuid current_step_id FK
+                                        enum status
+                                        enum priority
+                                        datetime due_date
+                                        datetime completion_date
+                                        json instance_data
+                                    }
+
+                                    TASK {
+                                        uuid task_id PK
+                                        string title
+                                        text description
+                                        uuid workflow_instance_id FK
+                                        uuid workflow_step_id FK
+                                        uuid assigned_to FK
+                                        datetime assigned_date
+                                        datetime due_date
+                                        enum status
+                                        enum priority
+                                        datetime completion_date
+                                        text completion_notes
+                                        json task_data
+                                    }
+
+                                    APPROVAL {
+                                        uuid approval_id PK
+                                        string approval_title
+                                        uuid workflow_instance_id FK
+                                        uuid task_id FK
+                                        uuid approver_id FK
+                                        int approval_level
+                                        datetime requested_date
+                                        datetime due_date
+                                        enum status
+                                        datetime decision_date
+                                        text comments
+                                        decimal approval_amount
+                                        json approval_data
+                                    }
+
+                                    USER {
+                                        uuid user_id PK
+                                        string username
+                                        string email
+                                        string full_name
+                                        string department
+                                        string title
+                                        json user_preferences
+                                    }
+                            </div>
+                        </div>
+
+                        <h3>Logical Data Model</h3>
+                        <h4>Workflow Definition Schema</h4>
+                        <pre><code>{
+  "workflow": {
+    "id": "uuid",
+    "name": "string",
+    "version": "string",
+    "description": "string",
+    "triggers": [
+      {
+        "type": "manual|automatic|scheduled|event",
+        "conditions": {}
+      }
+    ],
+    "variables": [
+      {
+        "name": "string",
+        "type": "string|number|boolean|date|object",
+        "defaultValue": "any",
+        "required": "boolean"
+      }
+    ],
+    "steps": [
+      {
+        "id": "string",
+        "name": "string",
+        "type": "human_task|service_task|user_task|script_task|decision_gateway|parallel_gateway",
+        "properties": {
+          "assignee": "string",
+          "candidateGroups": ["string"],
+          "formKey": "string",
+          "priority": "number",
+          "dueDate": "string"
+        },
+        "conditions": {
+          "expression": "string"
+        },
+        "outgoing": ["string"]
+      }
+    ],
+    "gateways": [
+      {
+        "id": "string",
+        "type": "exclusive|inclusive|parallel|event",
+        "conditions": [
+          {
+            "expression": "string",
+            "target": "string"
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+
+                        <h3>Physical Data Model</h3>
+                        <h4>Database Tables</h4>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Table Name</th>
+                                    <th>Description</th>
+                                    <th>Key Fields</th>
+                                    <th>Relationships</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>ep_workflow</td>
+                                    <td>Workflow definitions</td>
+                                    <td>ep_workflowid (PK), ep_name, ep_status</td>
+                                    <td>References: ep_domain, ep_process</td>
+                                </tr>
+                                <tr>
+                                    <td>ep_workflow_step</td>
+                                    <td>Workflow steps</td>
+                                    <td>ep_workflow_step_id (PK), ep_workflow_id (FK)</td>
+                                    <td>References: ep_workflow</td>
+                                </tr>
+                                <tr>
+                                    <td>ep_workflow_instance</td>
+                                    <td>Workflow instances</td>
+                                    <td>ep_workflow_instance_id (PK), ep_workflow_id (FK)</td>
+                                    <td>References: ep_workflow, systemuser</td>
+                                </tr>
+                                <tr>
+                                    <td>ep_task</td>
+                                    <td>Tasks</td>
+                                    <td>ep_task_id (PK), ep_workflow_instance_id (FK)</td>
+                                    <td>References: ep_workflow_instance, systemuser</td>
+                                </tr>
+                                <tr>
+                                    <td>ep_approval</td>
+                                    <td>Approvals</td>
+                                    <td>ep_approval_id (PK), ep_task_id (FK)</td>
+                                    <td>References: ep_task, systemuser</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h3>Data Flow Architecture</h3>
+                        <div class="diagram-container">
+                            <div class="mermaid">
+                                graph LR
+                                    subgraph "Data Sources"
+                                        DS1[User Input]
+                                        DS2[System Events]
+                                        DS3[External APIs]
+                                        DS4[Scheduled Triggers]
+                                    end
+
+                                    subgraph "Data Processing"
+                                        DP1[Data Validation]
+                                        DP2[Business Rules]
+                                        DP3[Workflow Engine]
+                                        DP4[Task Router]
+                                    end
+
+                                    subgraph "Data Storage"
+                                        DST1[Operational DB]
+                                        DST2[Analytics DB]
+                                        DST3[Document Store]
+                                        DST4[Event Store]
+                                    end
+
+                                    subgraph "Data Consumption"
+                                        DC1[Real-time Dashboards]
+                                        DC2[Reports]
+                                        DC3[APIs]
+                                        DC4[Mobile Apps]
+                                    end
+
+                                    DS1 --> DP1
+                                    DS2 --> DP1
+                                    DS3 --> DP1
+                                    DS4 --> DP1
+
+                                    DP1 --> DP2
+                                    DP2 --> DP3
+                                    DP3 --> DP4
+
+                                    DP3 --> DST1
+                                    DP4 --> DST1
+                                    DST1 --> DST2
+                                    DP3 --> DST3
+                                    DP2 --> DST4
+
+                                    DST1 --> DC1
+                                    DST2 --> DC2
+                                    DST1 --> DC3
+                                    DST1 --> DC4
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Integration Architecture -->
+            <section class="section" id="integration-architecture">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-plug"></i> Integration Architecture
+                        </h2>
+                    </div>
+                    <div class="card-content">
+                        <h3>Integration Patterns</h3>
+                        
+                        <h4>Event-Driven Integration</h4>
+                        <div class="diagram-container">
+                            <div class="mermaid">
+                                sequenceDiagram
+                                    participant UI as User Interface
+                                    participant WF as Workflow Engine
+                                    participant TS as Task Service
+                                    participant NS as Notification Service
+                                    participant EXT as External System
+
+                                    UI->>WF: Start Process
+                                    WF->>WF: Create Instance
+                                    WF->>TS: Create Task
+                                    TS->>NS: Send Notification
+                                    NS->>EXT: Email/SMS
+
+                                    Note over TS: Task Completed
+                                    TS->>WF: Task Complete Event
+                                    WF->>WF: Process Next Step
+                                    WF->>TS: Create Next Task
+                            </div>
+                        </div>
+
+                        <h4>API Integration</h4>
+                        <div class="diagram-container">
+                            <div class="mermaid">
+                                graph TB
+                                    subgraph "BPM APIs"
+                                        API1[Workflow API]
+                                        API2[Task API]
+                                        API3[Approval API]
+                                        API4[Analytics API]
+                                    end
+
+                                    subgraph "External Systems"
+                                        EXT1[DMS System]
+                                        EXT2[HRM System]
+                                        EXT3[Document Management]
+                                        EXT4[ERP System]
+                                    end
+
+                                    subgraph "Integration Layer"
+                                        INT1[API Gateway]
+                                        INT2[Message Broker]
+                                        INT3[Data Transformer]
+                                        INT4[Event Router]
+                                    end
+
+                                    API1 --> INT1
+                                    API2 --> INT1
+                                    API3 --> INT1
+                                    API4 --> INT1
+
+                                    INT1 --> INT2
+                                    INT2 --> INT3
+                                    INT3 --> INT4
+
+                                    INT4 --> EXT1
+                                    INT4 --> EXT2
+                                    INT4 --> EXT3
+                                    INT4 --> EXT4
+                            </div>
+                        </div>
+
+                        <h3>Integration Specifications</h3>
+                        
+                        <div class="tab-container">
+                            <div class="tab-buttons">
+                                <button class="tab-button active" onclick="showTab('dms-integration')">DMS Integration</button>
+                                <button class="tab-button" onclick="showTab('hrm-integration')">HRM Integration</button>
+                            </div>
+                            
+                            <div id="dms-integration" class="tab-content active">
+                                <h4>DMS Integration</h4>
+                                <pre><code>{
+  "integration_name": "DMS Process Synchronization",
+  "type": "Real-time",
+  "protocol": "REST API + Event-driven",
+  "endpoints": {
+    "get_processes": "GET /api/dms/processes",
+    "get_domains": "GET /api/dms/domains",
+    "process_changed": "Event: dms.process.changed"
+  },
+  "data_mapping": {
+    "dms_process": "bpm_workflow_template",
+    "dms_domain": "bmp_workflow_category"
+  }
+}</code></pre>
+                            </div>
+                            
+                            <div id="hrm-integration" class="tab-content">
+                                <h4>HRM Integration</h4>
+                                <pre><code>{
+  "integration_name": "HRM User and Organization Sync",
+  "type": "Batch + Real-time",
+  "protocol": "REST API + Event-driven",
+  "endpoints": {
+    "get_users": "GET /api/hrm/users",
+    "get_org_structure": "GET /api/hrm/organization",
+    "user_changed": "Event: hrm.user.changed"
+  },
+  "data_mapping": {
+    "hrm_employee": "bpm_user",
+    "hrm_department": "bpm_team"
+  }
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Security Architecture -->
+            <section class="section" id="security-architecture">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-shield-alt"></i> Security Architecture
+                        </h2>
+                    </div>
+                    <div class="card-content">
+                        <h3>Security Layers</h3>
+                        <div class="diagram-container">
+                            <div class="mermaid">
+                                graph TB
+                                    subgraph "Application Security"
+                                        AS1[Authentication]
+                                        AS2[Authorization]
+                                        AS3[Data Validation]
+                                        AS4[Audit Logging]
+                                    end
+
+                                    subgraph "Network Security"
+                                        NS1[API Gateway]
+                                        NS2[TLS/SSL]
+                                        NS3[VPN/Private Network]
+                                        NS4[Firewall Rules]
+                                    end
+
+                                    subgraph "Data Security"
+                                        DS1[Encryption at Rest]
+                                        DS2[Encryption in Transit]
+                                        DS3[Data Masking]
+                                        DS4[Backup Encryption]
+                                    end
+
+                                    subgraph "Infrastructure Security"
+                                        IS1[Identity Management]
+                                        IS2[Key Management]
+                                        IS3[Secret Management]
+                                        IS4[Monitoring & Alerting]
+                                    end
+                            </div>
+                        </div>
+
+                        <h3>Security Controls</h3>
+                        
+                        <h4>Authentication & Authorization</h4>
+                        <pre><code>{
+  "authentication": {
+    "provider": "Azure Active Directory",
+    "protocols": ["OAuth 2.0", "OpenID Connect"],
+    "token_lifetime": "8 hours",
+    "refresh_enabled": true
+  },
+  "authorization": {
+    "model": "Role-Based Access Control (RBAC)",
+    "roles": [
+      "BPM Administrator",
+      "Process Designer",
+      "Process Owner",
+      "Task User",
+      "Approver"
+    ],
+    "permissions": [
+      "workflow.create",
+      "workflow.execute",
+      "task.assign",
+      "approval.decide"
+    ]
+  }
+}</code></pre>
+
+                        <h4>Data Protection</h4>
+                        <pre><code>{
+  "data_classification": {
+    "public": "Process templates, public documentation",
+    "internal": "Process instances, task assignments",
+    "confidential": "Approval decisions, performance data",
+    "restricted": "Audit logs, security events"
+  },
+  "encryption": {
+    "at_rest": "AES-256",
+    "in_transit": "TLS 1.3",
+    "key_management": "Azure Key Vault"
+  },
+  "audit": {
+    "events": ["login", "process_start", "task_complete", "approval_decision"],
+    "retention": "7 years",
+    "immutable": true
+  }
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Deployment Architecture -->
+            <section class="section" id="deployment-architecture">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-rocket"></i> Deployment Architecture
+                        </h2>
+                    </div>
+                    <div class="card-content">
+                        <h3>Environment Strategy</h3>
+                        <div class="diagram-container">
+                            <div class="mermaid">
+                                graph TB
+                                    subgraph "Development"
+                                        DEV1[Dev Database]
+                                        DEV2[Dev App Services]
+                                        DEV3[Dev Workflows]
+                                    end
+
+                                    subgraph "Testing"
+                                        TEST1[Test Database]
+                                        TEST2[Test App Services]
+                                        TEST3[Test Workflows]
+                                    end
+
+                                    subgraph "Staging"
+                                        STG1[Staging Database]
+                                        STG2[Staging App Services]
+                                        STG3[Staging Workflows]
+                                    end
+
+                                    subgraph "Production"
+                                        PROD1[Prod Database Cluster]
+                                        PROD2[Prod App Services]
+                                        PROD3[Prod Workflows]
+                                        PROD4[Load Balancer]
+                                    end
+
+                                    DEV2 --> TEST2
+                                    TEST2 --> STG2
+                                    STG2 --> PROD4
+                                    PROD4 --> PROD2
+                            </div>
+                        </div>
+
+                        <h3>Infrastructure Components</h3>
+                        <h4>Azure Infrastructure</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                            <div style="background: #f5f5f5; padding: 1rem; border-radius: 8px;">
+                                <h5><i class="fas fa-server"></i> Compute</h5>
+                                <ul style="list-style: none; padding: 0;">
+                                    <li>Azure App Service (Web Apps)</li>
+                                    <li>Azure Container Instances</li>
+                                    <li>Azure Functions (Event Processing)</li>
+                                </ul>
+                            </div>
+                            <div style="background: #f5f5f5; padding: 1rem; border-radius: 8px;">
+                                <h5><i class="fas fa-database"></i> Data</h5>
+                                <ul style="list-style: none; padding: 0;">
+                                    <li>Azure SQL Database (Primary)</li>
+                                    <li>Azure Redis Cache (Session/Performance)</li>
+                                    <li>Azure Blob Storage (Documents)</li>
+                                    <li>Azure Service Bus (Messaging)</li>
+                                </ul>
+                            </div>
+                            <div style="background: #f5f5f5; padding: 1rem; border-radius: 8px;">
+                                <h5><i class="fas fa-lock"></i> Security</h5>
+                                <ul style="list-style: none; padding: 0;">
+                                    <li>Azure Active Directory</li>
+                                    <li>Azure Key Vault</li>
+                                    <li>Azure Application Gateway</li>
+                                </ul>
+                            </div>
+                            <div style="background: #f5f5f5; padding: 1rem; border-radius: 8px;">
+                                <h5><i class="fas fa-chart-line"></i> Monitoring</h5>
+                                <ul style="list-style: none; padding: 0;">
+                                    <li>Azure Monitor</li>
+                                    <li>Application Insights</li>
+                                    <li>Log Analytics</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <h3>Scalability Architecture</h3>
+                        <div class="diagram-container">
+                            <div class="mermaid">
+                                graph TB
+                                    subgraph "Load Balancing"
+                                        LB1[Application Gateway]
+                                        LB2[Internal Load Balancer]
+                                    end
+
+                                    subgraph "Application Tier"
+                                        APP1[Web App Instance 1]
+                                        APP2[Web App Instance 2]
+                                        APP3[Web App Instance N]
+                                    end
+
+                                    subgraph "Service Tier"
+                                        SVC1[Workflow Engine]
+                                        SVC2[Task Service]
+                                        SVC3[Notification Service]
+                                    end
+
+                                    subgraph "Data Tier"
+                                        DB1[SQL Database Primary]
+                                        DB2[SQL Database Secondary]
+                                        CACHE1[Redis Cache Cluster]
+                                    end
+
+                                    LB1 --> LB2
+                                    LB2 --> APP1
+                                    LB2 --> APP2
+                                    LB2 --> APP3
+
+                                    APP1 --> SVC1
+                                    APP2 --> SVC2
+                                    APP3 --> SVC3
+
+                                    SVC1 --> DB1
+                                    SVC2 --> DB1
+                                    SVC3 --> CACHE1
+                                    DB1 --> DB2
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Performance Architecture -->
+            <section class="section" id="performance-architecture">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-tachometer-alt"></i> Performance Architecture
+                        </h2>
+                    </div>
+                    <div class="card-content">
+                        <h3>Performance Targets</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    <th>Target</th>
+                                    <th>Measurement</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>API Response Time</td>
+                                    <td>&lt; 200ms</td>
+                                    <td>95th percentile</td>
+                                </tr>
+                                <tr>
+                                    <td>Workflow Start Time</td>
+                                    <td>&lt; 1 second</td>
+                                    <td>Average</td>
+                                </tr>
+                                <tr>
+                                    <td>Task Assignment Time</td>
+                                    <td>&lt; 500ms</td>
+                                    <td>95th percentile</td>
+                                </tr>
+                                <tr>
+                                    <td>Dashboard Load Time</td>
+                                    <td>&lt; 2 seconds</td>
+                                    <td>Average</td>
+                                </tr>
+                                <tr>
+                                    <td>Database Query Time</td>
+                                    <td>&lt; 100ms</td>
+                                    <td>95th percentile</td>
+                                </tr>
+                                <tr>
+                                    <td>Concurrent Users</td>
+                                    <td>10,000+</td>
+                                    <td>Peak load</td>
+                                </tr>
+                                <tr>
+                                    <td>Throughput</td>
+                                    <td>1000 TPS</td>
+                                    <td>Transactions per second</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h3>Performance Optimization</h3>
+                        
+                        <h4>Caching Strategy</h4>
+                        <div class="diagram-container">
+                            <div class="mermaid">
+                                graph TB
+                                    subgraph "Cache Layers"
+                                        L1[Browser Cache]
+                                        L2[CDN Cache]
+                                        L3[Application Cache]
+                                        L4[Database Cache]
+                                    end
+
+                                    subgraph "Cache Types"
+                                        CT1[Static Content]
+                                        CT2[API Responses]
+                                        CT3[Query Results]
+                                        CT4[Session Data]
+                                    end
+
+                                    L1 --> CT1
+                                    L2 --> CT1
+                                    L3 --> CT2
+                                    L3 --> CT4
+                                    L4 --> CT3
+                            </div>
+                        </div>
+
+                        <h3>Monitoring and Alerting</h3>
+                        <h4>Performance Monitoring</h4>
+                        <pre><code>{
+  "performance_monitoring": {
+    "metrics": [
+      {
+        "name": "workflow_execution_time",
+        "threshold": "5 minutes",
+        "alert_level": "warning"
+      },
+      {
+        "name": "task_assignment_failures",
+        "threshold": "5%",
+        "alert_level": "critical"
+      },
+      {
+        "name": "approval_delays",
+        "threshold": "SLA + 20%",
+        "alert_level": "warning"
+      }
+    ],
+    "dashboards": [
+      "Process Performance Overview",
+      "Task Management Metrics",
+      "System Health Dashboard"
+    ]
+  }
+}</code></pre>
+
+                        <!-- Performance Chart -->
+                        <div style="margin-top: 2rem;">
+                            <h4>Performance Metrics Dashboard</h4>
+                            <canvas id="performanceChart" style="max-height: 400px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Disaster Recovery -->
+            <section class="section" id="disaster-recovery">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-life-ring"></i> Disaster Recovery
+                        </h2>
+                    </div>
+                    <div class="card-content">
+                        <h3>Backup Strategy</h3>
+                        <div class="diagram-container">
+                            <div class="mermaid">
+                                graph TB
+                                    subgraph "Production"
+                                        P1[Primary Database]
+                                        P2[Application Services]
+                                        P3[File Storage]
+                                    end
+
+                                    subgraph "Backup Systems"
+                                        B1[Database Backup]
+                                        B2[Application Backup]
+                                        B3[File Backup]
+                                    end
+
+                                    subgraph "Recovery Site"
+                                        R1[Secondary Database]
+                                        R2[Standby Services]
+                                        R3[Replicated Storage]
+                                    end
+
+                                    P1 --> B1
+                                    P2 --> B2
+                                    P3 --> B3
+
+                                    B1 --> R1
+                                    B2 --> R2
+                                    B3 --> R3
+                            </div>
+                        </div>
+
+                        <h3>Recovery Procedures</h3>
+                        <h4>Recovery Time Objectives (RTO)</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Component</th>
+                                    <th>RTO</th>
+                                    <th>RPO</th>
+                                    <th>Recovery Procedure</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Database</td>
+                                    <td>4 hours</td>
+                                    <td>15 minutes</td>
+                                    <td>Automated failover</td>
+                                </tr>
+                                <tr>
+                                    <td>Applications</td>
+                                    <td>2 hours</td>
+                                    <td>5 minutes</td>
+                                    <td>Blue-green deployment</td>
+                                </tr>
+                                <tr>
+                                    <td>File Storage</td>
+                                    <td>1 hour</td>
+                                    <td>1 hour</td>
+                                    <td>Geo-replication</td>
+                                </tr>
+                                <tr>
+                                    <td>Workflows</td>
+                                    <td>30 minutes</td>
+                                    <td>Real-time</td>
+                                    <td>Event replay</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Document Control -->
+            <section class="section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-file-alt"></i> Document Control
+                        </h2>
+                    </div>
+                    <div class="card-content">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div>
+                                <h4>Version</h4>
+                                <p>1.0</p>
+                            </div>
+                            <div>
+                                <h4>Approved By</h4>
+                                <p>Architecture Review Board</p>
+                            </div>
+                            <div>
+                                <h4>Review Date</h4>
+                                <p>Quarterly</p>
+                            </div>
+                            <div>
+                                <h4>Next Review</h4>
+                                <p>Next Quarter</p>
+                            </div>
+                        </div>
+
+                        <h3>Related Documents</h3>
+                        <ul>
+                            <li><a href="#" style="color: var(--primary-color);">BPM Implementation Guide</a></li>
+                            <li><a href="#" style="color: var(--primary-color);">BPM Technical Specifications</a></li>
+                            <li><a href="#" style="color: var(--primary-color);">BPM Security Guide</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Floating Action Button -->
+    <div class="fab" onclick="window.print()">
+        <i class="fas fa-print"></i>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#1976d2',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#004ba0',
+                lineColor: '#5a5a5a',
+                secondaryColor: '#424242',
+                tertiaryColor: '#f5f5f5'
+            }
+        });
+
+        // Progress Bar
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('progressBar').style.width = scrolled + '%';
+        });
+
+        // Smooth Scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Tab Functionality
+        function showTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Sidebar Active Link
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -70% 0px',
+            threshold: 0
+        };
+
+        const observerCallback = (entries) => {
+            entries.forEach(entry => {
+                const id = entry.target.getAttribute('id');
+                const link = document.querySelector(`.sidebar-link[href="#${id}"]`);
+                
+                if (link) {
+                    if (entry.isIntersecting) {
+                        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+                        link.classList.add('active');
+                    }
+                }
+            });
+        };
+
+        const observer = new IntersectionObserver(observerCallback, observerOptions);
+        document.querySelectorAll('section[id]').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Mobile Menu Toggle
+        let sidebarOpen = false;
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebarOpen = !sidebarOpen;
+            if (sidebarOpen) {
+                sidebar.classList.add('active');
+            } else {
+                sidebar.classList.remove('active');
+            }
+        }
+
+        // Performance Chart
+        const ctx = document.getElementById('performanceChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+                    datasets: [
+                        {
+                            label: 'API Response Time (ms)',
+                            data: [120, 135, 125, 180, 165, 150, 140],
+                            borderColor: '#1976d2',
+                            backgroundColor: 'rgba(25, 118, 210, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Active Workflows',
+                            data: [250, 280, 450, 620, 580, 420, 300],
+                            borderColor: '#00bcd4',
+                            backgroundColor: 'rgba(0, 188, 212, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Task Completion Rate (%)',
+                            data: [95, 94, 96, 92, 93, 95, 96],
+                            borderColor: '#4caf50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        title: {
+                            display: true,
+                            text: 'System Performance Metrics (24-hour view)'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Animate sections on scroll
+        const animateOnScroll = () => {
+            const elements = document.querySelectorAll('.section');
+            elements.forEach((element, index) => {
+                element.style.animationDelay = `${index * 0.1}s`;
+            });
+        };
+
+        // Initialize animations
+        window.addEventListener('load', animateOnScroll);
+    </script>
+</body>
+</html>
