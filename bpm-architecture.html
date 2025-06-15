@@ -391,6 +391,78 @@
             transition: width 0.3s ease;
         }
 
+        /* Additional Styles */
+        .nav-toggle {
+            display: none;
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+        .nav-toggle i {
+            font-size: 1.5rem;
+            color: white;
+        }
+        .hero-title {
+            color: var(--primary-color);
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+        }
+        .info-row {
+            margin-top: 2rem;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .info-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        .grid-4col {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .azure-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .infocard {
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        .infocard ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .chart-container {
+            margin-top: 2rem;
+        }
+        .primary-link {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        .primary-link:hover {
+            text-decoration: underline;
+        }
+        .primary-link:visited {
+            color: var(--primary-color);
+        }
+        #performanceChart {
+            max-height: 400px;
+        }
+        @media (max-width: 1024px) {
+            .nav-toggle {
+                display: block;
+            }
+        }
+
         /* Responsive Design */
         @media (max-width: 1024px) {
             .sidebar {
@@ -455,11 +527,12 @@
             </div>
             <nav class="nav-menu">
                 <a href="#overview" class="nav-item">Overview</a>
-                <a href="#architecture" class="nav-item">Architecture</a>
-                <a href="#data" class="nav-item">Data</a>
-                <a href="#security" class="nav-item">Security</a>
-                <a href="#deployment" class="nav-item">Deployment</a>
+                <a href="#architecture-overview" class="nav-item">Architecture</a>
+                <a href="#data-architecture" class="nav-item">Data</a>
+                <a href="#security-architecture" class="nav-item">Security</a>
+                <a href="#deployment-architecture" class="nav-item">Deployment</a>
             </nav>
+            <div class="nav-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
         </div>
     </header>
 
@@ -517,22 +590,22 @@
             <section class="section" id="overview">
                 <div class="card">
                     <div class="card-content">
-                        <h1 style="color: var(--primary-color); font-size: 3rem; margin-bottom: 1rem;">
+                        <h1 class="hero-title">
                             <i class="fas fa-project-diagram"></i> Business Process Management (BPM) Architecture
                         </h1>
-                        <p style="font-size: 1.25rem; color: var(--text-secondary);">
+                        <p class="hero-subtitle">
                             Technical Architecture Documentation - Version 1.0
                         </p>
-                        <div style="margin-top: 2rem; display: flex; gap: 2rem; flex-wrap: wrap;">
-                            <div style="flex: 1; min-width: 200px;">
+                        <div class="info-row">
+                            <div class="info-item">
                                 <h4><i class="fas fa-book"></i> Document Type</h4>
                                 <p>Technical Architecture</p>
                             </div>
-                            <div style="flex: 1; min-width: 200px;">
+                            <div class="info-item">
                                 <h4><i class="fas fa-cube"></i> Module</h4>
                                 <p>Business Process Management (BPM)</p>
                             </div>
-                            <div style="flex: 1; min-width: 200px;">
+                            <div class="info-item">
                                 <h4><i class="fas fa-calendar"></i> Last Updated</h4>
                                 <p>Current Date</p>
                             </div>
@@ -569,6 +642,8 @@
                                     A[Presentation Layer] --> B[Application Layer]
                                     B --> C[Domain Layer]
                                     C --> D[Infrastructure Layer]
+
+                                    click B "#application-architecture" "Application Architecture Section" _self
 
                                     subgraph "Presentation Layer"
                                         A1[Process Designer Apps]
@@ -709,6 +784,16 @@
                                     S1 --> D2
                                     S2 --> D2
                                     S3 --> D4
+
+                                    click S1 call openWorkflowTab() "View Workflow Engine details"
+                                    click S2 call openTaskTab() "View Task Management details"
+                                    click D1 "#data-architecture" "Data Architecture" _self
+                                    click D3 "#integration-architecture" "Integration Architecture" _self
+                                    click F1 "https://reactjs.org/" "React Official Website" _blank
+                                    click F2 "https://learn.microsoft.com/power-apps/" "Microsoft Power Apps" _blank
+                                    click A1 "https://learn.microsoft.com/azure/api-management/" "Azure API Management" _blank
+                                    click D2 "https://learn.microsoft.com/azure/azure-cache-for-redis/" "Azure Cache for Redis" _blank
+                                    click D4 "https://learn.microsoft.com/azure/storage/blobs/" "Azure Blob Storage" _blank
                             </div>
                         </div>
 
@@ -1051,6 +1136,8 @@
                                     DST2 --> DC2
                                     DST1 --> DC3
                                     DST1 --> DC4
+
+                                    click DST1 "#data-architecture" "Data Architecture" _self
                             </div>
                         </div>
                     </div>
@@ -1129,6 +1216,9 @@
                                     INT4 --> EXT2
                                     INT4 --> EXT3
                                     INT4 --> EXT4
+
+                                    click EXT1 call openDMSIntegration() "View DMS Integration details"
+                                    click EXT2 call openHRMIntegration() "View HRM Integration details"
                             </div>
                         </div>
 
@@ -1321,35 +1411,35 @@
 
                         <h3>Infrastructure Components</h3>
                         <h4>Azure Infrastructure</h4>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                            <div style="background: #f5f5f5; padding: 1rem; border-radius: 8px;">
+                        <div class="azure-grid">
+                            <div class="infocard">
                                 <h5><i class="fas fa-server"></i> Compute</h5>
-                                <ul style="list-style: none; padding: 0;">
+                                <ul>
                                     <li>Azure App Service (Web Apps)</li>
                                     <li>Azure Container Instances</li>
                                     <li>Azure Functions (Event Processing)</li>
                                 </ul>
                             </div>
-                            <div style="background: #f5f5f5; padding: 1rem; border-radius: 8px;">
+                            <div class="infocard">
                                 <h5><i class="fas fa-database"></i> Data</h5>
-                                <ul style="list-style: none; padding: 0;">
+                                <ul>
                                     <li>Azure SQL Database (Primary)</li>
                                     <li>Azure Redis Cache (Session/Performance)</li>
                                     <li>Azure Blob Storage (Documents)</li>
                                     <li>Azure Service Bus (Messaging)</li>
                                 </ul>
                             </div>
-                            <div style="background: #f5f5f5; padding: 1rem; border-radius: 8px;">
+                            <div class="infocard">
                                 <h5><i class="fas fa-lock"></i> Security</h5>
-                                <ul style="list-style: none; padding: 0;">
+                                <ul>
                                     <li>Azure Active Directory</li>
                                     <li>Azure Key Vault</li>
                                     <li>Azure Application Gateway</li>
                                 </ul>
                             </div>
-                            <div style="background: #f5f5f5; padding: 1rem; border-radius: 8px;">
+                            <div class="infocard">
                                 <h5><i class="fas fa-chart-line"></i> Monitoring</h5>
-                                <ul style="list-style: none; padding: 0;">
+                                <ul>
                                     <li>Azure Monitor</li>
                                     <li>Application Insights</li>
                                     <li>Log Analytics</li>
@@ -1397,6 +1487,9 @@
                                     SVC2 --> DB1
                                     SVC3 --> CACHE1
                                     DB1 --> DB2
+
+                                    click LB1 "https://learn.microsoft.com/azure/application-gateway/" "Azure Application Gateway" _blank
+                                    click LB2 "https://learn.microsoft.com/azure/load-balancer/" "Azure Load Balancer" _blank
                             </div>
                         </div>
                     </div>
@@ -1518,9 +1611,9 @@
 }</code></pre>
 
                         <!-- Performance Chart -->
-                        <div style="margin-top: 2rem;">
+                        <div class="chart-container">
                             <h4>Performance Metrics Dashboard</h4>
-                            <canvas id="performanceChart" style="max-height: 400px;"></canvas>
+                            <canvas id="performanceChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -1618,7 +1711,7 @@
                         </h2>
                     </div>
                     <div class="card-content">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div class="grid-4col">
                             <div>
                                 <h4>Version</h4>
                                 <p>1.0</p>
@@ -1639,9 +1732,9 @@
 
                         <h3>Related Documents</h3>
                         <ul>
-                            <li><a href="#" style="color: var(--primary-color);">BPM Implementation Guide</a></li>
-                            <li><a href="#" style="color: var(--primary-color);">BPM Technical Specifications</a></li>
-                            <li><a href="#" style="color: var(--primary-color);">BPM Security Guide</a></li>
+                            <li><a href="#" class="primary-link">BPM Implementation Guide</a></li>
+                            <li><a href="#" class="primary-link">BPM Technical Specifications</a></li>
+                            <li><a href="#" class="primary-link">BPM Security Guide</a></li>
                         </ul>
                     </div>
                 </div>
@@ -1659,7 +1752,8 @@
         // Initialize Mermaid
         mermaid.initialize({ 
             startOnLoad: true,
-            theme: 'default',
+            securityLevel: 'loose',
+            theme: 'base',
             themeVariables: {
                 primaryColor: '#1976d2',
                 primaryTextColor: '#fff',
@@ -1667,8 +1761,27 @@
                 lineColor: '#5a5a5a',
                 secondaryColor: '#424242',
                 tertiaryColor: '#f5f5f5'
-            }
+            },
+            flowchart: { useMaxWidth: true, htmlLabels: true, nodeSpacing: 50, rankSpacing: 50, curve: 'basis' }
         });
+
+        // Mermaid interaction functions
+        function openWorkflowTab() {
+            showTab('workflow-engine-tab');
+            document.getElementById('workflow-engine-tab').scrollIntoView({ behavior: 'smooth' });
+        }
+        function openTaskTab() {
+            showTab('task-management-tab');
+            document.getElementById('task-management-tab').scrollIntoView({ behavior: 'smooth' });
+        }
+        function openDMSIntegration() {
+            showTab('dms-integration');
+            document.getElementById('dms-integration').scrollIntoView({ behavior: 'smooth' });
+        }
+        function openHRMIntegration() {
+            showTab('hrm-integration');
+            document.getElementById('hrm-integration').scrollIntoView({ behavior: 'smooth' });
+        }
 
         // Progress Bar
         window.addEventListener('scroll', () => {
